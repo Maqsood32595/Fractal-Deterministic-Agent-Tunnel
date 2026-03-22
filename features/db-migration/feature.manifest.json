@@ -1,0 +1,52 @@
+{
+    "id": "db-migration",
+    "name": "Database Migration Manager",
+    "description": "Secure, agent-run MongoDB schema migrations with enforced backup policies.",
+    "category": "Automation",
+    "version": "1.0.0",
+    "tunnels": {
+        "DB-Migration-Pipeline": {
+            "description": "Production MongoDB Schema Migration",
+            "allowed_methods": [
+                "POST"
+            ],
+            "allowed_paths": [],
+            "forbidden_keywords": [
+                "dropDatabase",
+                "dropCollection",
+                "deleteMany",
+                "rm -rf"
+            ],
+            "command_whitelist_mode": "strict",
+            "allowed_commands": [],
+            "pipeline": {
+                "enforce_sequence": true,
+                "steps": [
+                    {
+                        "order": 1,
+                        "command": "node features/db-migration/scripts/backup.js",
+                        "required": true
+                    },
+                    {
+                        "order": 2,
+                        "command": "node features/db-migration/scripts/migrate.js",
+                        "required": true
+                    },
+                    {
+                        "order": 3,
+                        "command": "node features/db-migration/scripts/validate.js",
+                        "required": true
+                    }
+                ]
+            }
+        }
+    },
+    "agents": {
+        "worker_key_db_migrator": {
+            "name": "DB Migration Worker",
+            "tier": "worker",
+            "tunnel": "DB-Migration-Pipeline",
+            "dailyLimit": 1000
+        }
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "id": "gcp-iam-provisioning",
+    "name": "GCP IAM Role Provisioner",
+    "description": "Secure, agent-run GCP IAM provisioning locked down by regex.",
+    "category": "Access Management",
+    "version": "1.0.0",
+    "tunnels": {
+        "GCP-IAM-Provisioning": {
+            "description": "GCP IAM Role Provisioner Agent",
+            "allowed_methods": [
+                "POST"
+            ],
+            "allowed_paths": [],
+            "forbidden_keywords": [
+                ";",
+                "&&",
+                "||",
+                "|",
+                "owner",
+                "iam.securityAdmin"
+            ],
+            "command_whitelist_mode": "regex",
+            "allowed_commands": [
+                "^gcloud projects add-iam-policy-binding [a-zA-Z0-9-_]+ --member=\"user:[a-zA-Z0-9.-]+@[a-zA-Z0-9.-]+\" --role=\"(roles/viewer|roles/storage\\.objectViewer|roles/logging\\.viewer)\"$"
+            ]
+        }
+    },
+    "agents": {
+        "worker_key_create_users": {
+            "name": "CreateUsers",
+            "tier": "worker",
+            "tunnel": "GCP-IAM-Provisioning",
+            "dailyLimit": 500
+        }
+    }
+}

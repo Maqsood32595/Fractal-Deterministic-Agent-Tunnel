@@ -1,0 +1,71 @@
+{
+  "run_1772546212311": {
+    "pipeline": "DB-Migration-Pipeline",
+    "agent": "DB Migration Worker",
+    "started_at": "2026-03-03T13:56:52.312Z",
+    "current_step": 2,
+    "status": "in_progress",
+    "steps_completed": [
+      {
+        "step": 1,
+        "command": "node features/db-migration/scripts/backup.js",
+        "confirmed_at": "2026-03-03T13:56:53.378Z"
+      },
+      {
+        "step": 2,
+        "command": "node features/db-migration/scripts/migrate.js",
+        "confirmed_at": "2026-03-03T13:56:54.056Z"
+      }
+    ]
+  },
+  "run_1772546284114": {
+    "pipeline": "DB-Migration-Pipeline",
+    "agent": "DB Migration Worker",
+    "started_at": "2026-03-03T13:58:04.114Z",
+    "current_step": 3,
+    "status": "completed",
+    "steps_completed": [
+      {
+        "step": 1,
+        "command": "node features/db-migration/scripts/backup.js",
+        "confirmed_at": "2026-03-03T13:58:04.903Z"
+      },
+      {
+        "step": 2,
+        "command": "node features/db-migration/scripts/migrate.js",
+        "confirmed_at": "2026-03-03T13:58:05.556Z"
+      },
+      {
+        "step": 3,
+        "command": "node features/db-migration/scripts/validate.js",
+        "confirmed_at": "2026-03-03T13:58:06.178Z"
+      }
+    ],
+    "completed_at": "2026-03-03T13:58:06.178Z"
+  },
+  "run_1772546307910": {
+    "pipeline": "DB-Migration-Pipeline",
+    "agent": "DB Migration Worker",
+    "started_at": "2026-03-03T13:58:27.910Z",
+    "current_step": 3,
+    "status": "completed",
+    "steps_completed": [
+      {
+        "step": 1,
+        "command": "node features/db-migration/scripts/backup.js",
+        "confirmed_at": "2026-03-03T13:58:28.786Z"
+      },
+      {
+        "step": 2,
+        "command": "node features/db-migration/scripts/migrate.js",
+        "confirmed_at": "2026-03-03T13:58:29.502Z"
+      },
+      {
+        "step": 3,
+        "command": "node features/db-migration/scripts/validate.js",
+        "confirmed_at": "2026-03-03T13:58:30.179Z"
+      }
+    ],
+    "completed_at": "2026-03-03T13:58:30.179Z"
+  }
+}

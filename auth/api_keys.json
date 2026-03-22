@@ -1,0 +1,8 @@
+{
+    "orchestrator_key_openclaw": {
+        "name": "OpenClaw Orchestrator",
+        "tier": "orchestrator",
+        "dailyLimit": 99999,
+        "description": "Main orchestrator — uncaged, full tunnel management access"
+    }
+}
