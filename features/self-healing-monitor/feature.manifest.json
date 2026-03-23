@@ -1,0 +1,25 @@
+{
+  "id": "self-healing-monitor",
+  "description": "Self-Healing Server Monitor Agent",
+  "version": "1.0.0",
+  "tunnels": {
+    "Self-Healing-Tunnel": {
+      "description": "Restricted process management",
+      "allowed_methods": ["POST"],
+      "allowed_paths": [],
+      "forbidden_keywords": [";", "&&", "||", "shutdown", "reboot", "halt", "init 0", "init 6", "kill -9 1", "killall", ">"],
+      "command_whitelist_mode": "regex",
+      "allowed_commands": [
+        "^(pm2 restart scout-kernel|pm2 id scout-kernel|kill -9 [0-9]+)$"
+      ]
+    }
+  },
+  "agents": {
+    "healing_worker_key_004": {
+      "name": "Self-Healing-Agent",
+      "tier": "worker",
+      "tunnel": "Self-Healing-Tunnel",
+      "description": "Agent capable of managing the scout-kernel process only."
+    }
+  }
+}

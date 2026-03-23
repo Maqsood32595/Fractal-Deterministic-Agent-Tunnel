@@ -1,0 +1,25 @@
+{
+  "id": "system-info",
+  "description": "Local System Telemetry Agent",
+  "version": "1.0.0",
+  "tunnels": {
+    "Local-System-Tunnel": {
+      "description": "Read-only local system metrics",
+      "allowed_methods": ["POST"],
+      "allowed_paths": [],
+      "forbidden_keywords": [";", "&&", "||", "del", "format", "Invoke-WebRequest", "wget", "curl", ">"],
+      "command_whitelist_mode": "regex",
+      "allowed_commands": [
+        "^(wmic cpu get loadpercentage|wmic os get FreePhysicalMemory,TotalVisibleMemorySize|systeminfo)$"
+      ]
+    }
+  },
+  "agents": {
+    "sysinfo_worker_key_005": {
+      "name": "Local-Telemetry-Agent",
+      "tier": "worker",
+      "tunnel": "Local-System-Tunnel",
+      "description": "Agent capable of running read-only Windows telemetry commands."
+    }
+  }
+}

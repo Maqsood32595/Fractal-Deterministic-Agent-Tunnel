@@ -1,0 +1,26 @@
+{
+  "id": "ssh-telemetry",
+  "description": "Remote SSH Telemetry Agent",
+  "version": "1.0.0",
+  "tunnels": {
+    "SSH-Telemetry-Tunnel": {
+      "description": "Read-only SSH telemetry executor",
+      "allowed_methods": ["POST"],
+      "allowed_paths": [],
+      "forbidden_keywords": [";", "&&", "||", "rm", "root", "sudo", "reboot", "kill", "wget", "curl", ">"],
+      "command_whitelist_mode": "regex",
+      "allowed_commands": [
+        "^ssh [a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+ \\\"(top -b -n 1|free -m|df -h)\\\"$",
+        "^gcloud compute ssh [a-zA-Z0-9_-]+ --project=[a-zA-Z0-9_-]+ --zone=[a-zA-Z0-9_-]+ --quiet --command=\\\"(top -b -n 1|free -m|df -h)\\\"$"
+      ]
+    }
+  },
+  "agents": {
+    "ssh_worker_key_001": {
+      "name": "SSH-Sensor-Agent",
+      "tier": "worker",
+      "tunnel": "SSH-Telemetry-Tunnel",
+      "description": "Agent capable of running read-only SSH telemetry commands."
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "gcp-secrets-manager",
+  "description": "GCP Secrets Lifecycle Agent",
+  "version": "1.0.0",
+  "tunnels": {
+    "GCP-Secrets-Tunnel": {
+      "description": "Secure secret rotation and access",
+      "allowed_methods": ["POST"],
+      "allowed_paths": [],
+      "forbidden_keywords": [";", "&&", "||", "delete", "destroy", "iam", "disable", ">"],
+      "command_whitelist_mode": "regex",
+      "allowed_commands": [
+        "^gcloud secrets versions (add|access) [a-zA-Z0-9-_]+ --data-file=.*$",
+        "^gcloud secrets versions access latest --secret=[a-zA-Z0-9-_]+$"
+      ]
+    }
+  },
+  "agents": {
+    "gcp_secret_key_003": {
+      "name": "GCP-Secrets-Agent",
+      "tier": "worker",
+      "tunnel": "GCP-Secrets-Tunnel",
+      "description": "Agent capable of rotating and reading secrets but unable to delete them."
+    }
+  }
+}

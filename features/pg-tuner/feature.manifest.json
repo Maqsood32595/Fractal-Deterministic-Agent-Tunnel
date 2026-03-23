@@ -1,0 +1,25 @@
+{
+  "id": "pg-tuner",
+  "description": "PostgreSQL Migration & Tuning Agent",
+  "version": "1.0.0",
+  "tunnels": {
+    "PG-Tuner-Tunnel": {
+      "description": "Read-only and index-tuning Postgres queries",
+      "allowed_methods": ["POST"],
+      "allowed_paths": [],
+      "forbidden_keywords": [";", "DROP", "ALTER USER", "TRUNCATE", "DELETE", "GRANT", "REVOKE", "\\\\"],
+      "command_whitelist_mode": "regex",
+      "allowed_commands": [
+        "^psql -U [a-zA-Z0-9_]+ -d [a-zA-Z0-9_]+ -c \\\"(SELECT .*|CREATE INDEX .*|EXPLAIN .*|CREATE TABLE .*)\\\"$"
+      ]
+    }
+  },
+  "agents": {
+    "pg_worker_key_002": {
+      "name": "PG-Tuner-Agent",
+      "tier": "worker",
+      "tunnel": "PG-Tuner-Tunnel",
+      "description": "Agent capable of running safe analysis and index creation on Postgres."
+    }
+  }
+}
