@@ -33,6 +33,23 @@ A core innovation of this repository is splitting AI "Memory" into two distinct,
 
 ---
 
+## 🏆 Verified Security Test Suite (4-Phase Audit)
+
+We have conducted a rigorous 4-phase security audit to prove that the AgentTunnel provides **mathematical containment** against rogue AI behavior. 
+
+| Phase | Test Scenario | Vector Defended | Status |
+| :--- | :--- | :--- | :--- |
+| **1** | **Remote SSH Telemetry** | Parameter Injection (`-o`) & Shell Chaining | ✅ Proven |
+| **2** | **PostgreSQL Tuning** | Destructive SQL (`DROP`, `DELETE`) | ✅ Proven |
+| **3** | **GCP Secrets Rotation** | Unauthorized Deletion & Exfiltration | ✅ Proven |
+| **4** | **Self-Healing Server** | Global OS Shutdown (`shutdown -h now`) | ✅ Proven |
+
+### 📖 Documentation & Logs
+*   **Reproduce the Tests:** [TESTING_GUIDE.md](./TESTING_GUIDE.md)
+*   **Technical Audit Logs:** [mdfolder/tasksexplanation.md](./mdfolder/tasksexplanation.md)
+
+---
+
 ## 📁 Repository Structure (The "Fractal" Design)
 
 The architecture is built on a **Fractal** folder structure. Agents are 100% decoupled. You can drop a new folder into `features/` and the Kernel will instantly auto-discover it, mount its security tunnel, and register its API keys without touching any core code.
