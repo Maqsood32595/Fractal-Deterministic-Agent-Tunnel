@@ -5,16 +5,16 @@
 
 The **Fractal Deterministic Agent Tunnel** solves the "Governance-Containment Gap" in AI Agents. Currently, organizations can monitor AI agents (like LangChain or CrewAI), but they cannot physically block them from hallucinating or executing dangerous commands if the LLM goes rogue. Prompt engineering is not enough.
 
-This architecture acts as a **mathematical security guard** at the infrastructure level. The agent can use natural language to decide what to do, but it is physically blocked from executing any command that does not match strict whitelist policies defined in a dynamic manifest.
+This architecture implements **deterministic policy enforcement** at the infrastructure level. The agent utilizes natural language for decision-making, but is physically restricted by a strict whitelist policy defined in an immutable access manifest.
 
-## 🚀 How It Works: The "Law Book" vs. The "Police"
+## ⚙️ Core Architecture: Policy vs. Enforcement
 
 To understand why this system guarantees deterministic outputs, you must understand the separation between the **Rules** and the **Engine**:
 
-1.  **The Law Book (The `feature.manifest.json`)**: This file holds the static rules. It defines the agent's identity and provides a strict regex whitelist of what shell commands the agent is actually allowed to trigger.
-2.  **The Police Officer (The Gateway & Kernel Engine)**: If you just take the JSON file and use it with a standard LLM, it provides zero security—the LLM will ignore it. **Our Gateway Engine** sits in front of the terminal. It intercepts every command the LLM tries to run, tests it against the manifest's regex, and drops the request with a `403 Forbidden` if it dares to deviate. 
+1.  **The Access Manifest (The `feature.manifest.json`)**: This file defines the static security policy. It establishes the agent's identity and provides a strict regex whitelist of the exact shell commands permitted for execution.
+2.  **The Enforcement Gateway (The Gateway & Kernel Engine)**: Static policy alone provides no protection if the LLM deviates. Our **Enforcement Gateway** sits directly at the shell boundary. It intercepts every command request, validates it against the manifest's regex, and rejects any unauthorized action with a `403 Forbidden` response. 
 
-*Intelligence comes from the LLM. Security comes from the Gateway.*
+*Reasoning capability stems from the LLM; Security enforcement is guaranteed by the Gateway.*
 
 ---
 
@@ -22,12 +22,12 @@ To understand why this system guarantees deterministic outputs, you must underst
 
 A core innovation of this repository is splitting AI "Memory" into two distinct, manageable layers. 
 
-### 1. Genetic Memory / Identity Memory (`feature.manifest.json`)
+### 1. Static Policy / Identity Profile (`feature.manifest.json`)
 *   **What it is:** The agent's permanent identity, allowed commands, forbidden keywords, and security boundaries.
-*   **Why it matters:** In traditional systems, policy is scattered across databases and YAML files. Here, the manifest **is** the agent's genetic memory.
+*   **Why it matters:** Conventional systems often scatter security logic across databases and YAML configurations. In this model, the manifest serves as the agent's **immutable security identity**.
 *   **Universal Portability:** Drop the `gcp-iam-provisioning` folder into any compatible engine across any repository or language (Python, Go, Node), and the agent instantly "remembers" its exact purpose and strict security boundaries.
 
-### 2. Working Memory (Audit Log & Pipeline State)
+### 2. Runtime Context (Audit Log & Execution State)
 *   **What it is:** The real-time record of what steps the agent successfully executed 5 minutes ago.
 *   **Why it matters:** LLMs lose track of context during 30-step autonomous tasks. By maintaining a Pipeline State Machine, the LLM only needs to read the immediate previous step to decide the next action. It is forced to be locally rational and cannot skip critical quality gates.
 

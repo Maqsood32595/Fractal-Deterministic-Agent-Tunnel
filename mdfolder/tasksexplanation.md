@@ -8,7 +8,7 @@ This document serves as the technical execution log for the `tasks.md` scenarios
 
 **Status:** ✅ Successfully Executed
 
-### 1. The Configuration (Manifest & Caging)
+### 1. The Policy Configuration (Manifest & Boundary)
 *   **Agent Identity:** `ssh_worker_key_001` mapped to the `SSH-Telemetry-Tunnel`.
 *   **The Regex Whitelist:** `^ssh [a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+ \"(top -b -n 1|free -m|df -h)\"$`
 *   **Forbidden Keywords:** `[";", "&&", "||", "rm", "root", "sudo", "reboot", "kill", "wget", "curl", ">"]`
@@ -36,7 +36,7 @@ This document serves as the technical execution log for the `tasks.md` scenarios
 
 **Status:** ✅ Successfully Executed
 
-### 1. The Configuration (Manifest & Caging)
+### 1. The Policy Configuration (Manifest & Boundary)
 *   **Agent Identity:** `pg_worker_key_002` mapped to the `PG-Tuner-Tunnel`.
 *   **The Regex Whitelist:** `^psql -U [a-zA-Z0-9_]+ -d [a-zA-Z0-9_]+ -c \"(SELECT .*|CREATE INDEX .*|EXPLAIN .*|CREATE TABLE .*)\"$`
 *   **Forbidden Keywords:** `[";", "DROP", "ALTER USER", "TRUNCATE", "DELETE", "GRANT", "REVOKE", "\\"]`
@@ -64,7 +64,7 @@ This document serves as the technical execution log for the `tasks.md` scenarios
 
 **Status:** ✅ Successfully Executed 
 
-### 1. The Configuration (Manifest & Caging)
+### 1. The Policy Configuration (Manifest & Boundary)
 *   **Agent Identity:** `gcp_secret_key_003` mapped to `GCP-Secrets-Tunnel`.
 *   **The Regex Whitelist:** 
     * `^gcloud secrets versions (add|access) [a-zA-Z0-9-_]+ --data-file=.*$`
@@ -94,7 +94,7 @@ This document serves as the technical execution log for the `tasks.md` scenarios
 
 **Status:** ✅ Successfully Executed 
 
-### 1. The Configuration (Manifest & Caging)
+### 1. The Policy Configuration (Manifest & Boundary)
 *   **Agent Identity:** `healing_worker_key_004` mapped to `Self-Healing-Tunnel`.
 *   **The Regex Whitelist:** `^(pm2 restart scout-kernel|pm2 id scout-kernel|kill -9 [0-9]+)$`
 *   **Forbidden Keywords:** `[";", "&&", "||", "shutdown", "reboot", "halt", "init 0", "init 6", "kill -9 1", "killall", ">"]`
@@ -118,5 +118,5 @@ This document serves as the technical execution log for the `tasks.md` scenarios
 
 ---
 
-### AgentTunnel Complex Testing Conclusion
-The AgentTunnel successfully survived all 4 enterprise-grade vulnerability vectors (Chained Shell Injection, Escaped Parameters, Unauthorized Paths, Global Privilege Escalation). When strictly paired with an LLM Architect to write Regex Manifests, this "Defense-in-Depth" node architecture is virtually un-hackable for automated DevOps execution.
+### AgentTunnel Security Validation Conclusion
+The AgentTunnel successfully mitigated all 4 targeted vulnerability vectors (Chained Shell Injection, Parameter Escalation, Unauthorized Resource Access, and Privilege Escalation). By utilizing an Enforcement Gateway to validate LLM-generated commands against a strict Access Manifest, this architecture provides a robust "Defense-in-Depth" solution for autonomous DevOps tasks.
