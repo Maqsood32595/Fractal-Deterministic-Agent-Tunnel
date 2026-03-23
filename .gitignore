@@ -1,0 +1,7 @@
+node_modules/
+.env
+features/db-migration/scripts/config.js
+*.log
+*_out.txt
+db_backup.json
+auth/pipeline_state.json

@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const fs = require('fs');
 
-const uri = 'mongodb+srv://Webcalc:Oraib%40123@webcalc.7y26uqv.mongodb.net/?retryWrites=true&w=majority&appName=Webcalc';
+const uri = process.env.MONGODB_URI || 'REDACTED';
 const client = new MongoClient(uri);
 
 async function runBackup() {

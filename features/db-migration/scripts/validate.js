@@ -1,7 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-// Use an environment variable, with a fallback for local discovery
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/default';
+const uri = process.env.MONGODB_URI || 'REDACTED';
 const client = new MongoClient(uri);
 
 async function runValidation() {
