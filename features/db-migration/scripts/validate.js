@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-const uri = 'mongodb+srv://Webcalc:Oraib%40123@webcalc.7y26uqv.mongodb.net/?retryWrites=true&w=majority&appName=Webcalc';
+// Use an environment variable, with a fallback for local discovery
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/default';
 const client = new MongoClient(uri);
 
 async function runValidation() {
