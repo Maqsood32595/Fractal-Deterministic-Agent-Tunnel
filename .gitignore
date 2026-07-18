@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+sre_run.log
+gitea_data/
+qdrant-data/
+localstack_data/
+*.log
