@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "allowed_commands": [
+    "^docker compose up -d --build target-api$",
+    "^docker compose restart target-api$",
+    "^node cleanup\\.js$"
+  ],
+  "forbidden_keywords": ["rm -rf", "passwd", "DROP TABLE", "format"],
+  "escalation_thresholds": {
+    "auto_approve_below_connections": 50,
+    "require_human_above_connections": 80,
+    "emergency_breakout_error_rate": 0.5
+  },
+  "active_runbook": "SOP-204",
+  "freeze_mode": false
+}
