@@ -464,7 +464,7 @@ async function runAgentAsync(runId: string, scenario: typeof SCENARIOS[0]) {
   }
 }
 
-// Approve - triggers PR creation and merge
+// Approve - triggers local remediation or PR flow
 app.post('/api/approve', async (req, res) => {
   if (!activeRun || activeRun.status !== 'suspended') {
     return res.status(400).json({ error: 'No suspended run to approve' });
@@ -474,6 +474,30 @@ app.post('/api/approve', async (req, res) => {
   stopWatchdog();
   activeRun.status = 'executing';
   sreLog('HITL_APPROVED', { runId });
+
+  // If this is a static/re-runnable SOP cleanup task (Scenario 2: Disk space), do it locally with zero Git writes
+  if (activeRun.scenario === 2) {
+    res.json({ success: true, message: 'Approved. Executing local cleanup command...' });
+    try {
+      // Execute the fix directly on the target-api local container
+      await fetch('http://localhost:8080/apply-fix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario: activeRun.scenario })
+      });
+      activeRun.status = 'completed';
+      activeRun.endTime = new Date().toISOString();
+      activeRun.prUrl = 'LOCAL_REMEDIATION'; // Sentinel value for local-only execution
+      sreLog('INCIDENT_RESOLVED_LOCALLY', { runId, scenario: 'Disk Utilization Critical', command: activeRun.proposedCommand });
+    } catch (err: any) {
+      if (activeRun) {
+        activeRun.status = 'failed';
+        activeRun.endTime = new Date().toISOString();
+      }
+      sreLog('LOCAL_REMEDIATION_FAILED', { runId, error: err.message });
+    }
+    return;
+  }
 
   res.json({ success: true, message: 'Approved. Creating GitHub PR...' });
 
@@ -761,6 +785,54 @@ function getDashboardHTML(): string {
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    
+    /* MCP Connectors Grid styling */
+    .mcp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .mcp-cell {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: all 0.2s ease;
+    }
+    .mcp-cell.active {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .mcp-cell.success {
+      border-color: #22c55e;
+      background: #f0fdf4;
+    }
+    .mcp-cell.danger {
+      border-color: #ef4444;
+      background: #fee2e2;
+    }
+    .mcp-name {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .mcp-status {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mcp-status.active { color: #d97706; }
+    .mcp-status.green { color: #16a34a; }
+    .mcp-status.red { color: #dc2626; }
   </style>
 </head>
 <body>
@@ -821,6 +893,49 @@ function getDashboardHTML(): string {
             <span class="value" id="pol-kw" style="font-size:0.72rem;max-width:180px;text-align:right;">—</span>
           </div>
           <div class="sync-time">Last synced: <span id="pol-sync">—</span></div>
+        </div>
+      </div>
+      
+      <!-- 9-MCP Connectors Panel -->
+      <div class="panel" style="margin-top:16px;">
+        <h3>🌐 9-MCP Connectors</h3>
+        <div class="mcp-grid">
+          <div class="mcp-cell" id="mcp-cell-datadog">
+            <span class="mcp-name">Datadog</span>
+            <span class="mcp-status" id="mcp-status-datadog">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-pagerduty">
+            <span class="mcp-name">PagerDuty</span>
+            <span class="mcp-status" id="mcp-status-pagerduty">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-aws">
+            <span class="mcp-name">AWS RDS</span>
+            <span class="mcp-status" id="mcp-status-aws">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-terraform">
+            <span class="mcp-name">Terraform</span>
+            <span class="mcp-status" id="mcp-status-terraform">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-kubernetes">
+            <span class="mcp-name">Kubernetes</span>
+            <span class="mcp-status" id="mcp-status-kubernetes">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-github">
+            <span class="mcp-name">GitHub</span>
+            <span class="mcp-status" id="mcp-status-github">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-argocd">
+            <span class="mcp-name">ArgoCD</span>
+            <span class="mcp-status" id="mcp-status-argocd">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-slack">
+            <span class="mcp-name">Slack</span>
+            <span class="mcp-status" id="mcp-status-slack">⚪ Standby</span>
+          </div>
+          <div class="mcp-cell" id="mcp-cell-runbook" style="grid-column: span 2;">
+            <span class="mcp-name">Incident Runbook (Qdrant)</span>
+            <span class="mcp-status" id="mcp-status-runbook">⚪ Standby</span>
+          </div>
         </div>
       </div>
     </div>
@@ -939,6 +1054,7 @@ function getDashboardHTML(): string {
             document.getElementById('cascade-body').textContent = 'No cascading failures or metrics anomalies detected.';
             
             updateWatchdog(false, false);
+            updateMCPTools(null);
             return;
           }
 
@@ -992,8 +1108,13 @@ function getDashboardHTML(): string {
           const prCard = document.getElementById('pr-card');
           if (run.prUrl) {
             prCard.classList.add('active');
-            document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Created & Merged 🟢';
-            document.getElementById('pr-body').innerHTML = '<a id="pr-link" href="' + run.prUrl + '" target="_blank" class="pr-link">View Pull Request #' + run.prNumber + ' →</a><div style="font-size:0.75rem;color:#64748b;margin-top:6px;">Agent commit: [skip-ci] · Branch: sre-fix/run-*</div>';
+            if (run.prUrl === 'LOCAL_REMEDIATION') {
+              document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Skipped (Local Fix) 🟢';
+              document.getElementById('pr-body').innerHTML = '<div style="font-weight:700;color:#16a34a;margin-bottom:4px;">Local remediation command executed successfully.</div><div style="font-size:0.75rem;color:#64748b;">GitHub commits bypassed to prevent git write amplification. Logs saved to local database.</div>';
+            } else {
+              document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Created & Merged 🟢';
+              document.getElementById('pr-body').innerHTML = '<a id="pr-link" href="' + run.prUrl + '" target="_blank" class="pr-link">View Pull Request #' + run.prNumber + ' →</a><div style="font-size:0.75rem;color:#64748b;margin-top:6px;">Agent commit: [skip-ci] · Branch: sre-fix/run-*</div>';
+            }
           } else {
             prCard.classList.remove('active');
             document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Awaiting PR Action ⚪';
@@ -1014,6 +1135,9 @@ function getDashboardHTML(): string {
             document.getElementById('cascade-title').textContent = '🚨 Watchdog Health status — Nominal 🟢';
             document.getElementById('cascade-body').textContent = 'Active telemetry monitors are operating within normal limits.';
           }
+
+          // Dynamic MCP status
+          updateMCPTools(run);
         }).catch(() => {});
     }
 
@@ -1074,6 +1198,78 @@ function getDashboardHTML(): string {
 
     async function simulateCascade() {
       await fetch('/api/simulate-cascade', { method: 'POST' });
+    }
+
+    function updateMCPTools(run) {
+      var tools = {
+        datadog: { name: 'Datadog', status: '⚪ Standby', cls: '' },
+        pagerduty: { name: 'PagerDuty', status: '⚪ Standby', cls: '' },
+        aws: { name: 'AWS RDS', status: '⚪ Standby', cls: '' },
+        terraform: { name: 'Terraform', status: '⚪ Standby', cls: '' },
+        kubernetes: { name: 'Kubernetes', status: '⚪ Standby', cls: '' },
+        github: { name: 'GitHub', status: '⚪ Standby', cls: '' },
+        argocd: { name: 'ArgoCD', status: '⚪ Standby', cls: '' },
+        slack: { name: 'Slack', status: '⚪ Standby', cls: '' },
+        runbook: { name: 'Incident Runbook (Qdrant)', status: '⚪ Standby', cls: '' }
+      };
+
+      if (run) {
+        var status = run.status;
+        if (status === 'triaging') {
+          tools.datadog = { name: 'Datadog', status: '🟡 Triaging...', cls: 'active' };
+          tools.pagerduty = { name: 'PagerDuty', status: '🟡 Ingesting Alert', cls: 'active' };
+          tools.aws = { name: 'AWS RDS', status: '🟡 Fetching Metrics', cls: 'active' };
+          tools.kubernetes = { name: 'Kubernetes', status: '🟡 Querying Pods', cls: 'active' };
+          tools.runbook = { name: 'Incident Runbook', status: '🟡 Querying SOP...', cls: 'active' };
+        } else if (status === 'suspended') {
+          tools.datadog = { name: 'Datadog', status: '🟢 Monitored', cls: 'success' };
+          tools.pagerduty = { name: 'PagerDuty', status: '🟢 Acknowledged', cls: 'success' };
+          tools.aws = { name: 'AWS RDS', status: '🟢 Metrics Cached', cls: 'success' };
+          tools.kubernetes = { name: 'Kubernetes', status: '🟢 Diagnostics Staged', cls: 'success' };
+          tools.terraform = { name: 'Terraform', status: '🟢 Audit Passed', cls: 'success' };
+          tools.github = { name: 'GitHub', status: '🟡 PR Staged', cls: 'active' };
+          tools.slack = { name: 'Slack', status: '🟡 HITL Awaiting', cls: 'active' };
+          tools.runbook = { name: 'Incident Runbook', status: '🟢 SOP Matched', cls: 'success' };
+        } else if (status === 'executing') {
+          tools.datadog = { name: 'Datadog', status: '🟢 Deploying...', cls: 'success' };
+          tools.kubernetes = { name: 'Kubernetes', status: '🟡 Restoring Container', cls: 'active' };
+          tools.github = { name: 'GitHub', status: '🟡 Committing Fix...', cls: 'active' };
+          tools.argocd = { name: 'ArgoCD', status: '🟡 Reconciling...', cls: 'active' };
+          tools.slack = { name: 'Slack', status: '🟡 Dispatching Alert', cls: 'active' };
+        } else if (status === 'completed') {
+          tools.datadog = { name: 'Datadog', status: '🟢 Nominal', cls: 'success' };
+          tools.pagerduty = { name: 'PagerDuty', status: '🟢 Resolved', cls: 'success' };
+          tools.aws = { name: 'AWS RDS', status: '🟢 Limits Scaled', cls: 'success' };
+          tools.kubernetes = { name: 'Kubernetes', status: '🟢 Healthy', cls: 'success' };
+          tools.terraform = { name: 'Terraform', status: '🟢 Applied Sync', cls: 'success' };
+          if (run.prUrl === 'LOCAL_REMEDIATION') {
+            tools.github = { name: 'GitHub', status: '⚪ Bypassed (Local)', cls: '' };
+          } else {
+            tools.github = { name: 'GitHub', status: '🟢 PR Merged', cls: 'success' };
+          }
+          tools.argocd = { name: 'ArgoCD', status: '🟢 Reconciled', cls: 'success' };
+          tools.slack = { name: 'Slack', status: '🟢 Alert Cleared', cls: 'success' };
+          tools.runbook = { name: 'Incident Runbook', status: '🟢 SOP Executed', cls: 'success' };
+        } else if (status === 'failed' || status === 'escalated') {
+          tools.datadog = { name: 'Datadog', status: '🔴 Alerting', cls: 'danger' };
+          tools.pagerduty = { name: 'PagerDuty', status: '🔴 Escalated T3', cls: 'danger' };
+          tools.aws = { name: 'AWS RDS', status: '🔴 Resource Blocked', cls: 'danger' };
+          tools.kubernetes = { name: 'Kubernetes', status: '🔴 CrashLoopBackOff', cls: 'danger' };
+          tools.github = { name: 'GitHub', status: '🔴 PR Blocked', cls: 'danger' };
+          tools.slack = { name: 'Slack', status: '🔴 Warning Sent', cls: 'danger' };
+        }
+      }
+
+      var keys = ['datadog', 'pagerduty', 'aws', 'terraform', 'kubernetes', 'github', 'argocd', 'slack', 'runbook'];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var cell = document.getElementById('mcp-cell-' + k);
+        var statusEl = document.getElementById('mcp-status-' + k);
+        if (cell && statusEl) {
+          cell.className = 'mcp-cell ' + tools[k].cls;
+          statusEl.textContent = tools[k].status;
+        }
+      }
     }
 
     // Start polling
