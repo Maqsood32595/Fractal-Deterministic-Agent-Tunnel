@@ -690,33 +690,40 @@ function getDashboardHTML(): string {
 
     /* HITL Gate */
     .hitl-panel {
-      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-      border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin-top: 16px;
-      display: none;
+      background: #f8fafc;
+      border: 2px solid #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 16px;
+      transition: all 0.3s ease;
     }
-    .hitl-panel.active { display: block; animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .hitl-title { font-weight: 700; color: #1d4ed8; margin-bottom: 12px; font-size: 1rem; }
+    .hitl-panel.active {
+      background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%); /* Amber / Yellow */
+      border-color: #eab308;
+    }
+    .hitl-title { font-weight: 700; color: #334155; margin-bottom: 12px; font-size: 1rem; }
+    .hitl-panel.active .hitl-title { color: #854d0e; }
     .hitl-buttons { display: flex; gap: 10px; margin-top: 14px; }
     .btn-approve {
       flex: 1; padding: 12px; background: #16a34a; color: white; border: none;
       border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
       transition: all 0.2s;
     }
-    .btn-approve:hover { background: #15803d; transform: translateY(-1px); }
+    .btn-approve:hover:not(:disabled) { background: #15803d; transform: translateY(-1px); }
+    .btn-approve:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
     .btn-reject {
       padding: 12px 20px; background: white; color: #dc2626; border: 2px solid #dc2626;
       border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem;
       transition: all 0.2s;
     }
-    .btn-reject:hover { background: #fee2e2; }
+    .btn-reject:hover:not(:disabled) { background: #fee2e2; }
+    .btn-reject:disabled { border-color: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
     /* PR Panel */
     .pr-card {
-      background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px;
-      padding: 14px; margin-top: 12px; display: none;
+      background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 10px;
+      padding: 14px; margin-top: 12px; transition: all 0.3s ease;
     }
-    .pr-card.active { display: block; }
+    .pr-card.active {
+      background: #f0fdf4; border-color: #22c55e; /* Green */
+    }
     .pr-link { color: #16a34a; font-weight: 700; text-decoration: none; font-size: 0.88rem; }
     .pr-link:hover { text-decoration: underline; }
 
@@ -730,13 +737,15 @@ function getDashboardHTML(): string {
     .watchdog-dot.active { background: #22c55e; animation: pulse 1s infinite; }
     .watchdog-dot.alert { background: #ef4444; animation: pulse 0.5s infinite; }
 
-    /* Cascade Alert */
+    /* Cascade Alert / Watchdog Status Panel */
     .cascade-alert {
-      background: linear-gradient(135deg, #fce7f3, #fdf2f8);
-      border: 2px solid #be185d; border-radius: 10px; padding: 14px;
-      margin-top: 12px; display: none;
+      background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 10px; padding: 14px;
+      margin-top: 12px; transition: all 0.3s ease;
     }
-    .cascade-alert.active { display: block; animation: pulse 0.8s infinite; }
+    .cascade-alert.active {
+      background: linear-gradient(135deg, #fee2e2, #fecaca); /* Crimson Red */
+      border-color: #dc2626;
+    }
 
     /* Buttons */
     .btn-reset {
@@ -851,30 +860,29 @@ function getDashboardHTML(): string {
 
       <!-- HITL Gate -->
       <div class="hitl-panel" id="hitl-panel">
-        <div class="hitl-title">👤 Human-in-the-Loop Gate — Approval Required</div>
-        <div style="font-size:0.85rem;color:#1d4ed8;margin-bottom:8px;">
-          The SRE agent has completed diagnosis and prepared a GitHub PR. Review the trace above and approve or reject.
+        <div class="hitl-title" id="hitl-title">👤 Human-in-the-Loop Gate — Standby</div>
+        <div id="hitl-body" style="font-size:0.85rem;color:#475569;margin-bottom:8px;">
+          Awaiting incident triage to evaluate gates.
         </div>
-        <div style="font-size:0.8rem;color:#3b82f6;">
+        <div id="hitl-meta" style="font-size:0.8rem;color:#94a3b8;">
           ⚠️ Policy v<span id="hitl-pol-version">?</span> active · Freeze mode: <span id="hitl-freeze">OFF</span>
         </div>
         <div class="hitl-buttons">
-          <button class="btn-approve" onclick="approveRun()">✅ Approve & Create PR</button>
-          <button class="btn-reject" onclick="rejectRun()">❌ Reject</button>
+          <button class="btn-approve" id="btn-approve" disabled onclick="approveRun()">✅ Approve & Create PR</button>
+          <button class="btn-reject" id="btn-reject" disabled onclick="rejectRun()">❌ Reject</button>
         </div>
       </div>
 
       <!-- PR Status -->
       <div class="pr-card" id="pr-card">
-        <div style="font-weight:700;color:#15803d;margin-bottom:6px;">🔀 GitHub PR Created & Merged</div>
-        <a id="pr-link" href="#" target="_blank" class="pr-link">View Pull Request →</a>
-        <div style="font-size:0.75rem;color:#64748b;margin-top:6px;">Agent commit: [skip-ci] · Branch: sre-fix/run-*</div>
+        <div id="pr-title" style="font-weight:700;color:#475569;margin-bottom:6px;">🔀 GitHub PR Status — Dormant</div>
+        <div id="pr-body" style="font-size:0.85rem;color:#64748b;">No active remediation pull request opened.</div>
       </div>
 
       <!-- Cascade Alert -->
       <div class="cascade-alert" id="cascade-alert">
-        <div style="font-weight:700;color:#be185d;font-size:1rem;">⚠️ TELEMETRY WATCHDOG — CASCADING FAILURE DETECTED</div>
-        <div style="font-size:0.82rem;color:#9d174d;margin-top:6px;">HTTP error rate exceeded threshold. Strategy pivot initiated. Manual escalation required.</div>
+        <div id="cascade-title" style="font-weight:700;color:#475569;font-size:1rem;">🚨 Watchdog Health status — Standby</div>
+        <div id="cascade-body" style="font-size:0.82rem;color:#64748b;margin-top:6px;">No cascading failures or metrics anomalies detected.</div>
       </div>
     </div>
   </div>
@@ -908,9 +916,28 @@ function getDashboardHTML(): string {
           if (!run) {
             setStatus('idle', 'IDLE', 'No active run');
             document.getElementById('scenario-label').textContent = '—';
-            document.getElementById('hitl-panel').classList.remove('active');
-            document.getElementById('pr-card').classList.remove('active');
-            document.getElementById('cascade-alert').classList.remove('active');
+            
+            // HITL Reset
+            const hitl = document.getElementById('hitl-panel');
+            hitl.classList.remove('active');
+            document.getElementById('hitl-title').textContent = '👤 Human-in-the-Loop Gate — Standby ⚪';
+            document.getElementById('hitl-body').textContent = 'Awaiting incident triage to evaluate gates.';
+            document.getElementById('hitl-meta').textContent = 'Watchdog status: STANDBY';
+            document.getElementById('btn-approve').disabled = true;
+            document.getElementById('btn-reject').disabled = true;
+
+            // PR Reset
+            const pr = document.getElementById('pr-card');
+            pr.classList.remove('active');
+            document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Dormant ⚪';
+            document.getElementById('pr-body').textContent = 'No active remediation pull request opened.';
+
+            // Cascade Reset
+            const cascade = document.getElementById('cascade-alert');
+            cascade.classList.remove('active');
+            document.getElementById('cascade-title').textContent = '🚨 Watchdog Health status — Standby ⚪';
+            document.getElementById('cascade-body').textContent = 'No cascading failures or metrics anomalies detected.';
+            
             updateWatchdog(false, false);
             return;
           }
@@ -942,27 +969,50 @@ function getDashboardHTML(): string {
           }
 
           // HITL panel
+          const hitlPanel = document.getElementById('hitl-panel');
+          const btnApprove = document.getElementById('btn-approve');
+          const btnReject = document.getElementById('btn-reject');
           if (run.status === 'suspended') {
-            document.getElementById('hitl-panel').classList.add('active');
-            document.getElementById('hitl-pol-version').textContent = run.policySnapshot?.version || '?';
-            document.getElementById('hitl-freeze').textContent = run.policySnapshot?.freeze_mode ? '🔴 ACTIVE' : 'OFF';
+            hitlPanel.classList.add('active');
+            document.getElementById('hitl-title').textContent = '👤 Human-in-the-Loop Gate — Action Required 🟡';
+            document.getElementById('hitl-body').textContent = 'The SRE agent has completed diagnosis and prepared a GitHub PR. Review the trace above and approve or reject.';
+            document.getElementById('hitl-meta').innerHTML = '⚠️ Policy v' + (run.policySnapshot?.version || '?') + ' active · Freeze mode: ' + (run.policySnapshot?.freeze_mode ? '🔴 ACTIVE' : 'OFF');
+            btnApprove.disabled = false;
+            btnReject.disabled = false;
           } else {
-            document.getElementById('hitl-panel').classList.remove('active');
+            hitlPanel.classList.remove('active');
+            document.getElementById('hitl-title').textContent = '👤 Human-in-the-Loop Gate — Standby ⚪';
+            document.getElementById('hitl-body').textContent = 'Agent run status is: ' + run.status.toUpperCase() + '. No approvals required.';
+            document.getElementById('hitl-meta').textContent = 'Watchdog status: MONITORING';
+            btnApprove.disabled = true;
+            btnReject.disabled = true;
           }
 
           // PR card
+          const prCard = document.getElementById('pr-card');
           if (run.prUrl) {
-            document.getElementById('pr-card').classList.add('active');
-            document.getElementById('pr-link').href = run.prUrl;
-            document.getElementById('pr-link').textContent = \`View PR #\${run.prNumber} →\`;
+            prCard.classList.add('active');
+            document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Created & Merged 🟢';
+            document.getElementById('pr-body').innerHTML = '<a id="pr-link" href="' + run.prUrl + '" target="_blank" class="pr-link">View Pull Request #' + run.prNumber + ' →</a><div style="font-size:0.75rem;color:#64748b;margin-top:6px;">Agent commit: [skip-ci] · Branch: sre-fix/run-*</div>';
+          } else {
+            prCard.classList.remove('active');
+            document.getElementById('pr-title').textContent = '🔀 GitHub PR Status — Awaiting PR Action ⚪';
+            document.getElementById('pr-body').textContent = 'Remediation flow in triage, PR has not been generated yet.';
           }
 
           // Watchdog
           updateWatchdog(run.watchdogActive && run.status === 'suspended', run.cascadeDetected);
 
           // Cascade
+          const cascadeAlert = document.getElementById('cascade-alert');
           if (run.cascadeDetected) {
-            document.getElementById('cascade-alert').classList.add('active');
+            cascadeAlert.classList.add('active');
+            document.getElementById('cascade-title').textContent = '⚠️ TELEMETRY WATCHDOG — CASCADING FAILURE DETECTED 🔴';
+            document.getElementById('cascade-body').textContent = 'HTTP error rate exceeded threshold. Strategy pivot initiated. Manual escalation required.';
+          } else {
+            cascadeAlert.classList.remove('active');
+            document.getElementById('cascade-title').textContent = '🚨 Watchdog Health status — Nominal 🟢';
+            document.getElementById('cascade-body').textContent = 'Active telemetry monitors are operating within normal limits.';
           }
         }).catch(() => {});
     }
